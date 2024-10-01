@@ -1,0 +1,73 @@
+#define F_CPU 16000000UL // Definición de la frecuencia del microcontrolador como 16 MHz
+#include <avr/io.h>
+#include <util/delay.h>
+
+#define Pul1 PB1  // Pulsador 1 conectado al pin RB1
+#define Pul2 PB2  // Pulsador 2 conectado al pin RB2
+#define D1   PC7  // LED D1 conectado al pin RC7
+#define D2   PC8  // LED D2 conectado al pin RC8
+#define Op   0    // Se define el valor de la operación (puede ser modificado)
+
+int main(void)
+{
+    // Configuración de los pines
+    DDRB &= ~((1 << Pul1) | (1 << Pul2)); // Configura RB1 y RB2 como entradas
+    DDRC |= (1 << D1) | (1 << D2);        // Configura RC7 y RC8 como salidas
+    
+    // Inicialización de variables
+    uint8_t modo = 1;
+    uint16_t contador1 = 0;
+    uint16_t contador2 = 0;
+    uint8_t band = 0;
+
+    while (1)
+    {
+        // Verificación de pulsadores
+        if ((PINB & (1 << Pul1)) || (PINB & (1 << Pul2)))
+        {
+            modo = 2;
+        }
+        
+        // Verificación de modo y bandera
+        if (modo == 1 && band == 0)
+        {
+            contador1++;
+            contador2++;
+            band = 1;
+            
+            if (contador1 == 80)
+            {
+                PORTC ^= (1 << D1); // Conmuta D1
+                contador1 = 0;
+                
+                if (contador2 == 140)
+                {
+                    PORTC ^= (1 << D2); // Conmuta D2
+                    contador2 = 0;
+                    band = 0;
+                    _delay_ms(5); // Retardo de 5 ms
+                }
+            }
+        }
+        else
+        {
+            contador1++;
+            contador2++;
+            band = 1;
+            
+            if (contador1 == 40)
+            {
+                PORTC ^= (1 << D1); // Conmuta D1
+                contador1 = 0;
+                
+                if (contador2 == 180)
+                {
+                    PORTC ^= (1 << D2); // Conmuta D2
+                    contador2 = 0;
+                    band = 0;
+                    _delay_ms(5); // Retardo de 5 ms
+                }
+            }
+        }
+    }
+}
